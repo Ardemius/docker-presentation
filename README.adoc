@@ -1,0 +1,119 @@
+= Try Docker CodeSchool abstract
+Thomas SCHWENDER <https://github.com/ardemius[@ardemius]>
+:icons: font
+:imagesdir: images
+:source-highlighter: highlightjs
+// Next 2 ones are to handle line breaks in some particular elements (list, footnotes, etc.)
+:lb: pass:[<br> +]
+:sb: pass:[<br>]
+// check https://github.com/Ardemius/personal-wiki/wiki/AsciiDoctor-tips for tips on table of content in GitHub
+:toc: macro
+
+toc::[]
+
+== Basic commands
+
+* On *lance le container* correspondant à l'image httpd en version 2.4
++
+[source,shell]
+----
+docker container run httpd:2.4
+----
++
+NOTE: The `--detach` flag can be used to make the container run in the background
+
+* Pour *exposer un port* à l'extérieur du container, utiliser l'option `-p <outside port>:<container port>` ("publish ports")
++
+[source,shell]
+----
+docker container run -p 80:80 httpd:2.4
+----
+
+* To *list containers* and get their *PIDs and / or names*
++
+[source,shell]
+----
+docker container ls
+----
++
+PIDs and names can both be used when a docker command needs to target a container.
+
+* *To execute a command in a running container*
++
+[source,shell]
+----
+docker container exec elegant_noether du -mh
+----
+
+* To attach a *shell* to the container
++
+[source,shell]
+----
+docker container exec -it elegant_noether /bin/bash
+----
+
+* To *copy files into a running container*, you can either:
+	** use the `docker container cp`:
++
+[source,shell]
+----
+docker container cp page.html elegant_noether:/usr/local/apache2/htdocs/
+----
+	** use the `COPY` instructions in a Dockerfile:
++
+[source,shell]
+----
+[...]
+RUN apt-get update && apt-get install -y fortunes
+
+COPY page.html /usr/local/apache2/htdocs/
+[...]
+----
+	** use a *data volume*. +
+	A data volume to create a connection between files on our local computer (host) and the filesystem in the container:
++
+[source,shell]
+----
+docker run -d -p 80:80 -v /my-files:/usr/local/apache2/htdocs web-server:1.1
+----
+
+== Dockerfiles
+
+[source,shell]
+.Dockerfile example
+----
+# create a new image based on the one indicated after FROM
+FROM httpd:2.4
+
+# expose a port inside the container (careful, you still have to map port between host and container)
+EXPOSE 80
+
+# Use RUN command to run any commands as the image is being build
+# combining commands on 1 line is possible and avoid creating too much layers (normally 1 by RUN command, TO BE CHECKED)
+RUN apt-get update && apt-get install -y fortunes
+
+# add contact information to help collaborative work
+LABEL maintainer="moby-dock@example.com"
+----
+
+* to build an image, `--tag` option to specify name and version +
+Final "`.`" to look for the Dockerfile in the same folder that the command is run in.
++
+[source,shell]
+----
+docker image build --tag web-server:1.0 .
+----
+
+* To list image on your computer
++
+[source,shell]
+----
+docker image ls
+----
+
+== Resources
+
+* https://www.codeschool.com/courses/try-docker[Codeschool Try Docker]
+
+
+
